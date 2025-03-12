@@ -1,0 +1,16 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="MyCalcTest">
+    <listeners>
+        <listener class-name="listener.RetryTransformerTestNG"/>
+    </listeners>
+    <test name="UnitTests">
+        <groups>
+            <run>
+                <include name="sum1"/>
+            </run>
+        </groups>
+        <classes>
+            <class name="tests.TestNG.NGTests"/>
+        </classes>
+    </test>
+</suite>
