@@ -301,6 +301,11 @@ public class UserTests {
     }
 
     @Test
-
+    public void getAllLoginUserCheckList(){
+        List<String> users = given().get("/api/users")
+                .then()
+                .statusCode(200).extract().as(new TypeRef<List<String>>() {});
+        Assertions.assertTrue(users.size() > 3);
+    }
 
 }
