@@ -1,12 +1,15 @@
 package tests.swaggerTests;
 
+import assertions.AssertableResponse;
+import assertions.Condition;
+import assertions.Conditions;
+import assertions.GenericAssertableResponse;
 import io.restassured.RestAssured;
 import io.restassured.common.mapper.TypeRef;
 import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.ContentType;
 import listener.CustomTpl;
-import models.fakeApiUser.UserRoot;
 import models.swagger.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -33,15 +36,19 @@ public class UserTests {
     @Test
     public void positiveRegisterTest(){
         int randomNumber = Math.abs(random.nextInt());
-        FullUser user = new FullUser().builder().login("Unhuman" + randomNumber).pass("Jumanji")
+        FullUser user = new FullUser().builder().login("Unhuman" + randomNumber).pass("Jumanji" + randomNumber)
                 .build();
-        Info info = given().contentType(ContentType.JSON)
+        new AssertableResponse(given().contentType(ContentType.JSON)
                 .body(user)
                 .post("/api/signup")
-                .then()
-                .statusCode(201)
-                .extract().jsonPath().getObject("info", Info.class);
-        Assertions.assertEquals(info.getMessage(), "User created");
+                .then()).should(Conditions.haseMessage("User created"))
+                .should(Conditions.haseStatus(201));
+        new GenericAssertableResponse<InfoResult>(given().contentType(ContentType.JSON)
+                .body(user)
+                .post("/api/signup")
+                .then(), new TypeRef<InfoResult>() {})
+                .should(Conditions.haseMessage("Login already exist"))
+                .should(Conditions.haseStatus(400));
     }
 
     @Test
