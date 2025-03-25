@@ -3,20 +3,38 @@ package tests.swaggerTests;
 import io.restassured.RestAssured;
 import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
+import io.restassured.response.Response;
+import listener.AdminUser;
+import listener.AdminUserResolver;
 import listener.CustomTpl;
 import models.swagger.*;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import services.UserService;
+import utils.RandomTestData;
+
 import java.util.List;
 import java.util.Random;
 import static assertions.Conditions.*;
+import static utils.RandomTestData.*;
 
+@ExtendWith(AdminUserResolver.class)
 public class UserNewTests {
 
     private static Random random;
     private static UserService userService;
+    private static RandomTestData randomTestData;
+    private FullUser user;
+
+    @BeforeEach
+    public void initUser(){
+        user = getRandomUser();
+    }
+
     @BeforeAll
     public static void setUp(){
         RestAssured.baseURI = "http://85.192.34.140:8080/api";
@@ -24,28 +42,43 @@ public class UserNewTests {
                 CustomTpl.customLogFilter().withCustomTemplates());
         random = new Random();
         userService = new UserService();
+        randomTestData = new RandomTestData();
     }
 
-    private FullUser getRandomUser(){
-        int randomNumber = Math.abs(random.nextInt());
-        return FullUser.builder().login("Unhuman" + randomNumber).pass("Jumanji" + randomNumber)
-                .build();
-    }
-
-    private FullUser getAdminUser(){
-        return FullUser.builder().login("admin").pass("admin").build();
+    @Test
+    public void positiveRegisterTestBase(){
+        userService.register(user)
+                .should(haseStatus(201))
+                .should(haseMessage("User created"));
     }
 
     @Test
     public void positiveRegisterTest(){
-        FullUser user = getRandomUser();
+        Response response = userService.register(user)
+                //.should(haseStatus(201))
+                //.should(haseMessage("User created"))
+        .asResponse();
+
+        Info info = response.jsonPath().getObject("info", Info.class);
+
+        SoftAssertions softAssertions = new SoftAssertions();
+        softAssertions.assertThat(info.getMessage()).as("Сообщение об ошибке было неверное ")
+                .isEqualTo("fake message");
+        softAssertions.assertThat(response.statusCode()).as("Статус код не был двухсотым")
+                .isEqualTo(201);
+        softAssertions.assertAll();
+
+    }
+
+    @Test
+    public void positiveRegisterTestWithService(){
+        FullUser user = getRandomUserWithGames();
         userService.register(user).should(haseStatus(201))
                 .should(haseMessage("User created"));
     }
 
     @Test
     public void negativeRegisterLoginUser(){
-        FullUser user = getRandomUser();
         userService.register(user);//первая регистрация статус коды не проверяем
         userService.register(user).should(haseStatus(400))
                 .should(haseMessage("Login already exist"));
@@ -53,7 +86,6 @@ public class UserNewTests {
 
     @Test
     public void negativeRegisterNoPassword(){
-        FullUser user = getRandomUser();
         user.setPass(null);
         userService.register(user)
                 .should(haseStatus(400))
@@ -61,16 +93,14 @@ public class UserNewTests {
     }
 
     @Test
-    public void authAdmin(){
-        FullUser user = getAdminUser();
-        String token  = userService.auth(user).should(haseStatus(200))
+    public void authAdmin(@AdminUser FullUser admin){
+        String token  = userService.auth(admin).should(haseStatus(200))
                 .should(haseJwt()).asJwt();
         Assertions.assertNotNull(token);//можно без этого
     }
 
     @Test
     public void positiveAuthNewUser(){
-        FullUser user = getRandomUser();
         userService.register(user);
         userService.auth(user).should(haseStatus(200))
                 .should(haseJwt());
@@ -78,7 +108,6 @@ public class UserNewTests {
 
     @Test
     public void negativeAuth(){
-        FullUser user = getRandomUser();
         userService.auth(user)
                 .should(haseStatus(401))
                 .should(haseError("Unauthorized"));
@@ -86,7 +115,6 @@ public class UserNewTests {
 
     @Test
     public void positiveGetUserInfoTest(){
-        FullUser user = getAdminUser();
         String token  = userService.auth(user).should(haseStatus(200))
                 .should(haseJwt()).asJwt();
         userService.getUserInfo(token)
@@ -107,7 +135,6 @@ public class UserNewTests {
 
     @Test
     public void positiveUpdatePasswordUser(){
-        FullUser user = getRandomUser();
         userService.register(user);
 
         String token = userService.auth(user).asJwt();
@@ -146,7 +173,6 @@ public class UserNewTests {
 
     @Test
     public void positiveDeleteUser(){
-        FullUser user = getRandomUser();
         userService.register(user);
         String token = userService.auth(user).should(haseJwt()).asJwt();
         InfoWrapper infoWrapper = userService.deleteUser(token)
@@ -156,7 +182,6 @@ public class UserNewTests {
 
     @Test
     public void getAllLoginUser(){
-        FullUser user = getRandomUser();
         userService.register(user);
         String token = userService.auth(user).should(haseJwt()).asJwt();
         List<String> users = userService.getAllUsers()
