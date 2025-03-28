@@ -1,5 +1,6 @@
 package tests.swaggerTests;
 
+import io.qameta.allure.Attachment;
 import io.restassured.RestAssured;
 import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
@@ -26,10 +27,16 @@ public class FileTests {
         fileService = new FileService();
     }
 
+    @Attachment(value = "downloaded", type = "image/png")
+    public byte[] attachFile(byte[] bytes){
+        return bytes;
+    }
+
     @Test
-    public void fileDownload(){
+    public void positiveFileDownload(){
         byte[] file = fileService.downloadImage()
                 .asResponse().asByteArray();
+        attachFile(file);
         File expectedFile = new File("src/test/resources/threadqa.jpeg");
 
         Assertions.assertEquals(expectedFile.length(), file.length);
