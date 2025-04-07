@@ -6,9 +6,12 @@ import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -80,5 +83,33 @@ public class HardElementsTests {
 
         WebElement inputValue = driver.findElement(By.id("sliderValue"));
         Assertions.assertEquals(expectedSize,Integer.parseInt(Objects.requireNonNull(inputValue.getAttribute("value"))));
+    }
+
+    @Test
+    public void hoverTest() {
+        driver.get("http://85.192.34.140:8081");
+
+        // Переход к разделу Widgets
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebElement widgets = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//div[@class='card-body']//h5[text() = 'Widgets']")));
+        widgets.click();
+
+        // Переход к пункту Menu
+        WebElement menu = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//span[text()='Menu']")));
+        menu.click();
+
+        // Наведение на Main Item 2
+        WebElement menuItemMiddle = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//a[text()='Main Item 2']")));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", menuItemMiddle);
+        Actions actions = new Actions(driver);
+        actions.moveToElement(menuItemMiddle).build().perform();
+
+        // Ожидание появления SUB SUB LIST
+        WebElement subSubList = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//a[text()='SUB SUB LIST »']")));
+        actions.moveToElement(subSubList).build().perform();
+
+        // Проверка количества элементов Sub Sub Item
+        List<WebElement> subListItem = driver.findElements(By.xpath("//a[contains(text(),'Sub Sub Item')]"));
+        Assertions.assertEquals(2, subListItem.size());
     }
 }
