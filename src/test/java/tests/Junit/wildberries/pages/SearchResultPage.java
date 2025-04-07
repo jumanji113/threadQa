@@ -13,7 +13,7 @@ public class SearchResultPage {
     private By priceOver = By.xpath("//input[@name= 'endN']");
     private By priceStart = By.xpath("//input[@name= 'startN']");
     private By showResultsButton = By.xpath("//button[@class='filters-desktop__btn-main btn-main']");
-    private By items = By.xpath("//div[@class='product-card-list']/article");
+    private By items = By.xpath("//div[@class='product-card-list']//article");
 
 
     public SearchResultPage(WebDriver driver) {

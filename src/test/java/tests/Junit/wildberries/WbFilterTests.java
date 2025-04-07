@@ -1,6 +1,7 @@
 package tests.Junit.wildberries;
 
 import org.junit.jupiter.api.Test;
+import tests.Junit.wildberries.pages.ItemPage;
 import tests.Junit.wildberries.pages.MainPage;
 import tests.Junit.wildberries.pages.SearchResultPage;
 
@@ -20,6 +21,8 @@ public class WbFilterTests extends BaseTest{
         searchResultPage.setPriceOver(expectedOverPrice);
         searchResultPage.showResult();
         searchResultPage.openItem();
+
+        ItemPage itemPage = new ItemPage(driver);
     }
 
 
