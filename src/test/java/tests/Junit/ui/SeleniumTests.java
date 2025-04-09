@@ -1,32 +1,43 @@
 package tests.Junit.ui;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.io.File;
+import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SeleniumTests {
 
+    private String downloadFolder = System.getProperty("user.dir") + File.separator + "build" + File.separator + "downloadFiles";
     private WebDriver driver;
+
+    @BeforeAll
+    public static void downloadChromeDriver(){
+        WebDriverManager.chromedriver().setup();
+    }
+
     @BeforeEach
     public void setUp(){
-        driver = new ChromeDriver();
-        WebDriverManager.chromedriver().setup();
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("--headless");
+        //options.addArguments("--headless");
+        Map<String, String> prefs = new HashMap<>();
+        prefs.put("download.default_directory", downloadFolder);
+        options.setExperimentalOption("prefs", prefs);
+        driver = new ChromeDriver(options);
         // Отключаем энергосберегающие функции
-        //chromeOptions.addArguments("--disable-backgrounding-occluded-windows");
-        //chromeOptions.addArguments("--disable-background-timer-throttling");
-        //chromeOptions.addArguments("--disable-renderer-backgrounding");
+        options.addArguments("--disable-backgrounding-occluded-windows");
+        options.addArguments("--disable-background-timer-throttling");
+        options.addArguments("--disable-renderer-backgrounding");
         driver.manage().window().setSize(new Dimension(1920, 1080));
         //driver.navigate().refresh();
         driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(30));
@@ -37,6 +48,7 @@ public class SeleniumTests {
     public void tearDown(){
         driver.close();
     }
+
     @Test
     public void simpleUiTest() {
         driver.get("https://threadqa.ru/");
@@ -87,7 +99,7 @@ public class SeleniumTests {
     }
 
     @Test
-    public void uploadAndDownloadTest(){
+    public void uploadFileTest(){
         driver.get("http://85.192.34.140:8081");
         WebElement elementsCard = driver.findElement(By.xpath("//div[@class='card-body']//h5[text() = 'Elements']"));
         elementsCard.click();
@@ -95,6 +107,29 @@ public class SeleniumTests {
         elementsTextBox.click();
 
         WebElement uploadFileButton = driver.findElement(By.xpath("//input[@id= 'uploadFile']"));
+        uploadFileButton.sendKeys((System.getProperty("user.dir")) + "/src/test/resources/threadqa.jpeg");
+
+        WebElement uploadedFilePath = driver.findElement(By.xpath("//p[@id = 'uploadedFilePath']"));
+        Assertions.assertTrue(uploadedFilePath.getText().contains("threadqa.jpeg"));
+    }
+
+    @Test
+    public void downloadFileTest(){
+        driver.get("http://85.192.34.140:8081");
+        WebElement elementsCard = driver.findElement(By.xpath("//div[@class='card-body']//h5[text() = 'Elements']"));
+        elementsCard.click();
+        WebElement elementsTextBox = driver.findElement(By.xpath("//span[text() = 'Upload and Download']"));
+        elementsTextBox.click();
+
         WebElement downloadFileButton = driver.findElement(By.xpath("//a[@id= 'downloadButton']"));
+        downloadFileButton.click();
+
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(30));
+        wait.until(x-> Paths.get(downloadFolder, "sticker.png").toFile().exists());
+
+
+        File file = new File("build/downloadFiles/sticker.png");
+        Assertions.assertTrue(file.length() != 0);
+        Assertions.assertNotNull(file);
     }
 }
