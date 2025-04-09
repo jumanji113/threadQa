@@ -1,5 +1,6 @@
 package tests.Junit.wildberries;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import tests.Junit.wildberries.pages.ItemPage;
 import tests.Junit.wildberries.pages.MainPage;
@@ -23,6 +24,10 @@ public class WbFilterTests extends BaseTest{
         searchResultPage.openItem();
 
         ItemPage itemPage = new ItemPage(driver);
+        String actualText = itemPage.getItemName();
+        Integer actualPrice = itemPage.getItemPrice();
+        Assertions.assertTrue(actualText.toLowerCase().equals(expectedItem.toLowerCase()));
+        Assertions.assertTrue(actualPrice >=expectedStartPrice && actualPrice <= expectedOverPrice);
     }
 
 
