@@ -25,8 +25,10 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok:1.18.20'
     testImplementation"com.github.javafaker:javafaker:1.0.2"
     testImplementation 'org.assertj:assertj-core:3.26.3'
-    testImplementation 'org.seleniumhq.selenium:selenium-java:4.31.0'
+    //testImplementation 'org.seleniumhq.selenium:selenium-java:4.31.0'
     testImplementation 'io.github.bonigarcia:webdrivermanager:6.0.1'
+    testImplementation 'com.codeborne:selenide:7.8.1'
+    testImplementation 'com.codeborne:pdf-test:1.9.2'
 }
 
 tasks.register("testNGRun", Test.class){
