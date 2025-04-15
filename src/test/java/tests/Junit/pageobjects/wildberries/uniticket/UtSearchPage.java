@@ -1,4 +1,4 @@
-package tests.junit5.ui.base_tests.page_objects.unitickets;
+package tests.Junit.pageobjects.wildberries.uniticket;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
